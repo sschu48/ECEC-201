@@ -4,15 +4,15 @@
 */
 
 #include <stdio.h>
-#include <string.h>  /* hint! */
+#include <string.h> /* hint! */
 
 /* structure defining a menu item
    specifically, a menu item's name and what it should do */
-struct menu {
+struct menu
+{
   char *cmd_name;
   void (*cmd_ptr)();
 };
-
 
 void file_new()
 {
@@ -44,17 +44,15 @@ void file_exit()
   printf("Goodbye.\n");
 }
 
-
 /* global variable 'file': array of structs */
 struct menu file[] = {
-  {"new",     file_new},      /* file[0] */
-  {"open",    file_open},     /* file[1] */
-  {"close",   file_close},    /* file[3] */
-  {"save",    file_save},
-  {"print",   file_print},
-  {"exit",    file_exit}      /* file[5] */
+    {"new", file_new},     /* file[0] */
+    {"open", file_open},   /* file[1] */
+    {"close", file_close}, /* file[3] */
+    {"save", file_save},
+    {"print", file_print},
+    {"exit", file_exit} /* file[5] */
 };
-
 
 void do_file_menu(char *name)
 {
@@ -71,8 +69,20 @@ void do_file_menu(char *name)
    *
    * Hint: This function is very short (less than 10 lines).
    */
-}
+  int i = 0;
+  int str_value = strcmp(file[i].cmd_name, name);
 
+  if (str_value == 0)
+  {
+    for (i = 0; i < 6; i++)
+      {
+        if (str_value == 0) 
+          file[i].cmd_ptr();
+      }
+  }
+  else
+    printf("Invalid menu option\n");
+}
 
 int main()
 {
@@ -82,11 +92,11 @@ int main()
   do_file_menu("close");
   do_file_menu("save");
   do_file_menu("print");
-  do_file_menu("exit");
+  // do_file_menu("exit");
 
   /* test behavior of supplying invalid menu options */
   do_file_menu("invalid");
-  do_file_menu("badmenuitem")
-  
+  do_file_menu("badmenuitem");
+
   return 0;
 }
