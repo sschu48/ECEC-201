@@ -82,6 +82,8 @@ int get_parms(Parms *parms, const char *modes, int argc, char **argv)
 char *filename_add_ext(const char *filename, const char *ext)
 {
   /* Your code goes here! */
+  char *rle_fn = strcat(filename, ext);
+  return rle_fn;
 }
 
 
@@ -134,6 +136,45 @@ int check_magic(FILE *fp)
 void compress(const char *filename)
 {
   /* Your code goes here! */
+  /* Create new file to write to */
+  FILE *fp;
+  size_t ret;
+  char *rle_filename = filename_add_ext(filename, ".rle");
+  fp = fopen(rle_filename, "wb+");
+  if(!fp) {
+    fprintf(stderr, "Failed to open: %s\n", rle_filename);
+  }
+
+  /* Write magic byte sequence */
+  char *magic_ascii = "!RLE";
+  ret = fwrite(magic_ascii, sizeof(*magic_ascii), 4, fp);
+
+
+
+  /* Iterate through bytes in file */
+  /* Open file */
+  FILE *fp_read;
+  fp_read = fopen(filename, "rb");
+  if(!fp_read) {
+    fprintf(stderr, "Failed to open %s\n", filename);
+  }
+  /* Store first byte */
+  unsigned char byte[1];
+  unsigned char *byte_cur = *byte;
+
+  while(*byte == *byte_cur) {
+    ret = fread(*byte, 1, 1, fp_read);
+  }
+
+
+
+  /* Conditional statements for count size */
+
+  /* Write to new file */
+  /* Write Count Byte then Byte */
+
+  /* Close file */
+  fclose(fp);
 }
 
 
