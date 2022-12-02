@@ -301,6 +301,13 @@ void compress(const char *filename)
 void expand(const char *filename)
 {
   /* Your code goes here! */
+  /* Variables */
+
+  /* Create nes*/
+
+  /* Throw error if file isn't .rle or contains !RLE in it*/
+
+  /* Decode the .rle to the original file */
 }
 
 
