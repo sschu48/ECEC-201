@@ -2,3 +2,8 @@
 *.zip
 *.DS_Store
 *.txt.rle
+*.bin.rle
+*.bin
+*.txt
+*.vscode
+*RLE

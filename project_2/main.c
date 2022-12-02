@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <limits.h>
 
 /* Stores parameters that specify how to the program should behave.
  *
@@ -82,12 +83,23 @@ int get_parms(Parms *parms, const char *modes, int argc, char **argv)
 char *filename_add_ext(const char *filename, const char *ext)
 {
   /* Your code goes here! */
+  /* Allocate new string */
+  char *rle_fn = (char *)malloc(strlen(filename) + strlen(ext) + 1);
+  /* Malloc error */
+  if (rle_fn == NULL)
+    printf("Malloc ERROR");
+
+  strcpy(rle_fn, filename);
+  strcat(rle_fn, ext);
+
+  return rle_fn;
+
 }
 
 
 /* Returns a newly allocated string on the heap containing the supplied
  * filename with its extension removed.
- *
+ *  
  * For example:
  *   if `filename` contains the string "test.txt.rle", then this
  *   function will return a string on the heap containing
@@ -95,6 +107,21 @@ char *filename_add_ext(const char *filename, const char *ext)
 char *filename_rm_ext(const char *filename)
 {
   /* Your code goes here! */
+  /* Find length of the string */
+  int count = 0;
+  while (filename[count] != '\0')
+  {
+    ++count;
+  }
+  
+  /* Slice string */
+  int size = sizeof(filename) - 4;
+  char *rm_ext = (char *)malloc(size * sizeof(char));
+  
+  for (int i = 0; 0 <= size; i ++)
+    rm_ext[i] = filename[i];
+  
+  return rm_ext;
 }
 
 
@@ -103,6 +130,10 @@ char *filename_rm_ext(const char *filename)
 int check_ext(const char *filename)
 {
   /* Your code goes here! */
+  /* Get last 4 characters */
+  char ext[4];
+  for (int i = 0; i < 4; i++ )
+    ext[i] = filename[sizeof(filename) - i];
 }
 
 
@@ -134,6 +165,119 @@ int check_magic(FILE *fp)
 void compress(const char *filename)
 {
   /* Your code goes here! */
+  /* Variables */
+  size_t ret;             /* ret for magic sequence */ 
+  int cur_byte;           /* current byte value (for counting) */ 
+  int prev_byte;          /* previous byte value */ 
+  unsigned char count;   /* count iteration */
+
+  /* Create input and output files */
+  FILE *fp_out; /* output */
+  char *fn_out = filename_add_ext(filename, ".rle");
+  fp_out = fopen(fn_out, "wb+");
+  if(!fp_out) {
+    fprintf(stderr, "Failed to open: %s\n", fn_out);
+  }
+
+  FILE *fp_in; /* input */
+  /* fn_in is filename */
+  fp_in = fopen(filename, "rb");
+  if(!fp_in) {
+    fprintf(stderr, "Failed to open %s\n", filename);
+  }
+
+  /* Write magic byte sequence */
+  char *magic_ascii = "!RLE";
+  ret = fwrite(magic_ascii, sizeof(*magic_ascii), 4, fp_out);
+
+  /* init for prev_byte */
+  prev_byte = EOF;
+  
+  /* init for cur_byte */
+  cur_byte = fgetc(fp_in);
+  /* Load file bytes to memory */
+  while (cur_byte != EOF)
+  {
+
+    /* Debugging: printf("Next iteration:\nprev: %c, cur: %c\n\n", prev_byte, cur_byte); */
+
+    /* If theres a match*/
+    if (cur_byte == prev_byte) {
+      /* Start iterating */
+      count = 1;
+
+      /* Debugging: printf("Theres a match!\nprev: %c, cur: %c\n\n", prev_byte, cur_byte); */
+
+      /* Check next byte */
+      while ((cur_byte = fgetc(fp_in)) != EOF)
+      {
+        /* Debugging: printf("Checking next byte\n prev: %c, cur: %c\n\n", prev_byte, cur_byte); */
+        /* If still match */
+        if (cur_byte == prev_byte)
+        {
+          count ++;
+          
+          /* If count_byte reaches UCHAR_MAX */
+          if (count == UCHAR_MAX) {
+            /* Move to  fp_out */
+            fputc(count, fp_out);
+
+            /* Change prev_byte char */
+            prev_byte = EOF;
+
+            break;
+          }
+
+          /* Debugging: printf("Still a match count: %d, byte: %c\n\n", count, prev_byte);*/
+
+        } /* end of if(cur_byte == prev_byte) */
+        /* If match ends */
+        else {
+          /* Debugging: printf("Match ended.\n prev: %c, cur: %c\n\n", prev_byte, cur_byte); */
+
+          /* Display byte first then count */
+          fputc(prev_byte, fp_out);
+          fputc(count, fp_out);
+
+          /* Set prev_char to end of sequence */
+          prev_byte = cur_byte;
+          break;
+        }
+
+      } /* while ((cur_byte = fgetc(fp_in)) != EOF) */
+
+    } /* end of if(cur_byte == prev_byte) */
+
+    /* Theres no match*/
+    else {
+      /* Move prev_byte */
+      prev_byte = cur_byte;
+
+      /* Debugging: printf("Theres not match\nprev: %c, cur: %c\n\n", prev_byte, cur_byte); */
+    }
+
+    /* Move byte to fp_out */
+    // fputc(cur_byte, fp_out);
+
+    /* Check for EOF */
+    if (cur_byte == EOF) {
+      fputc(prev_byte, fp_out);
+      fputc(count, fp_out);
+      break;
+    }
+
+  } /* while ((cur_byte = fgetc(fp_in)) != EOF) */
+
+  /* 
+   * while not EOF...
+   * set prev_byte placement for BYTE 
+   * while cur_byte = prev_byte count += 1 
+   * */
+
+  /* Close file */
+  fclose(fp_in);
+  fclose(fp_out);
+
 }
 
 
