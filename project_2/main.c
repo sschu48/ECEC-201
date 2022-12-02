@@ -278,6 +278,9 @@ void compress(const char *filename)
   fclose(fp_in);
   fclose(fp_out);
 
+  /* Free fn_out */
+  free(fn_out);
+
 }
 
 
