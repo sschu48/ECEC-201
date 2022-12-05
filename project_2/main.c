@@ -334,40 +334,57 @@ void expand(const char *filename)
   /* check_ext true if == 1 */
   if (check_ext(filename) == 1) {
     fp = fopen(filename, "rb"); /* Open file */
+
+    /* Create output file */
+    FILE *fp_out;
+    char *fn_out = filename_rm_ext(filename);
+    fp_out = fopen(fn_out, "wb+");
+    
+    /* Error throw if file fails to open */
+    if (!fp_out)
+      fprintf(stderr, "Failed to open out file: %s", fn_out);
     
     /* check_magic true if == 1*/
     if (check_magic(fp) == 0)
       fprintf(stderr, "error -- file is not an RLE file!\n");
+    else
+    {
+      /* Decode the .rle to the original file */
+
+
+      /* init for prev byte */
+      prev_byte = EOF;
+
+      /* Iterate through file */
+      while((cur_byte = fgetc(fp)) != EOF)
+      {
+        /* If theres a match */
+        if (cur_byte == prev_byte) {
+          count = fgetc(fp);
+
+          while (count > 0) {
+            fputc(cur_byte, fp_out);
+            count--;
+          }
+
+          prev_byte = EOF;   /* prev_byte to null again */
+        } /* end: if (cur_byte == prev_byte) */
+        else
+        {
+          /* No match */
+          prev_byte = cur_byte;
+        }
+
+        /* Add character to file */
+        fputc(cur_byte, fp_out);
+
+      } /* End of: while(cur_byte != EOF) */
+
+
+    }
   }
   else
     fprintf(stderr, "error -- file is not an RLE file!\n");
-
-  /* Create output file */
-  FILE *fp_out;
-  char *fn_out = filename_rm_ext(filename);
-  fp_out = fopen(fn_out, "wb+");
-
-  /* Error throw if file fails to open */
-  if (!fp_out)
-    fprintf(stderr, "Failed to open out file: %s", fn_out);
-
-
-  
-  /* Decode the .rle to the original file */
-  /* init for prev byte */
-  prev_byte = EOF;
-
-  /* Move past !RLE */
-  for (int i = 0; i < 3; i++) cur_byte = fgetc(fp);
-  printf("Cur Byte: %02x\n", cur_byte);
-
-  /* Iterate through file */
-  while((cur_byte = fgetc(fp)) != EOF)
-  {
-
-    break;
-
-  } /* End of: while(cur_byte != EOF) */
 
 }
 
