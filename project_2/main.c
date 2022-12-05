@@ -106,22 +106,18 @@ char *filename_add_ext(const char *filename, const char *ext)
  *   "test.txt" */
 char *filename_rm_ext(const char *filename)
 {
-  /* Your code goes here! */
-  /* Find length of the string */
-  int count = 0;
-  while (filename[count] != '\0')
-  {
-    ++count;
-  }
-  
-  /* Slice string */
-  int size = sizeof(filename) - 4;
-  char *rm_ext = (char *)malloc(size * sizeof(char));
-  
-  for (int i = 0; 0 <= size; i ++)
-    rm_ext[i] = filename[i];
-  
-  return rm_ext;
+  /* Variables */
+  char *malloc_str;
+  char *fn_ext;
+
+  /* Create memory allocation for string */
+  malloc_str = (char *)malloc(strlen(filename) + 1);
+  strcpy(malloc_str, filename);
+  fn_ext = strrchr(malloc_str, '.');
+  if (fn_ext != NULL) *fn_ext = '\0';
+
+  /* Return string */
+  return malloc_str;
 }
 
 
@@ -134,6 +130,12 @@ int check_ext(const char *filename)
   char ext[4];
   for (int i = 0; i < 4; i++ )
     ext[i] = filename[sizeof(filename) - i];
+
+  /* Compare ext to ".rle" */
+  if (strcmp(ext, ".rle"))
+    return 1;
+  else
+    return 0;
 }
 
 
@@ -143,6 +145,15 @@ int check_ext(const char *filename)
 int check_magic(FILE *fp)
 {
   /* Your code goes here! */
+  /* Magic number*/
+  char magic_number[4];
+
+  for (int i = 0; i < 4; i++)
+    magic_number[i] = fgetc(fp);
+  
+  /* Compare strings */
+  if (strcmp(magic_number, "!RLE\0") == 1)
+    fprintf(stderr, "error -- file is not an RLE file!\n");
 }
 
 
@@ -195,6 +206,7 @@ void compress(const char *filename)
   
   /* init for cur_byte */
   cur_byte = fgetc(fp_in);
+  
   /* Load file bytes to memory */
   while (cur_byte != EOF)
   {
@@ -301,13 +313,71 @@ void compress(const char *filename)
 void expand(const char *filename)
 {
   /* Your code goes here! */
+  
   /* Variables */
+  int cur_byte;    /* Current Byte */
+  int prev_byte;   /* Previous Byte */
+  unsigned char count;
+  size_t ret;
 
-  /* Create nes*/
+  FILE *fp;
+  char magic_number[4];
+
+
 
   /* Throw error if file isn't .rle or contains !RLE in it*/
+  if (check_ext(filename)) {
+    fp = fopen(filename, "rb"); /* Open file */
 
+    for (int i = 0; i < 4; i++)
+      magic_number[i] = fgetc(fp);
+    
+    /* Compare strings */
+    if (strcmp(magic_number, "!RLE\0") == 1)
+      fprintf(stderr, "error -- file is not an RLE file!\n");
+  }
+  else fprintf(stderr, "error -- file is not an RLE file!\n");
+
+  /* Create output file */
+  FILE *fp_out;
+  char *fn_out = filename_rm_ext(filename);
+  fp_out = fopen(fn_out, "wb+");
+
+  /* Error throw if file fails to open */
+  if (!fp_out)
+    fprintf(stderr, "Failed to open out file: %s", fn_out);
+
+
+  
   /* Decode the .rle to the original file */
+  /* init for prev byte */
+  prev_byte = EOF;
+
+  /* Iterate through file */
+  while((cur_byte = fgetc(fp)) != EOF)
+  {
+    /* If theres a match */
+    if (cur_byte == prev_byte) {
+      count = fgetc(fp);
+
+      while (count > 0) {
+        fputc(cur_byte, fp_out);
+        count--;
+      }
+
+      prev_byte = EOF;   /* prev_byte to null again */
+    } /* end: if (cur_byte == prev_byte) */
+    else
+    {
+      /* No match */
+      prev_byte = cur_byte;
+    }
+
+    /* Add character to file */
+    fputc(cur_byte, fp_out);
+
+  } /* End of: while(cur_byte != EOF) */
+
 }
 
 
