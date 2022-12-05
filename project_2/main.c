@@ -126,15 +126,15 @@ char *filename_rm_ext(const char *filename)
 int check_ext(const char *filename)
 {
   /* Your code goes here! */
-  /* Get last 4 characters */
-  char ext[4];
-  for (int i = 0; i < 4; i++ )
-    ext[i] = filename[sizeof(filename) - i];
+  /* Get extension */
+  char *fn_ext = strrchr(filename, '.');
 
   /* Compare ext to ".rle" */
-  if (strcmp(ext, ".rle"))
+  if (strcmp(fn_ext, ".rle") == 0)
+    /* Return 1 if extension is true */
     return 1;
   else
+    /* Return 0 if false */
     return 0;
 }
 
@@ -152,8 +152,12 @@ int check_magic(FILE *fp)
     magic_number[i] = fgetc(fp);
   
   /* Compare strings */
-  if (strcmp(magic_number, "!RLE\0") == 1)
-    fprintf(stderr, "error -- file is not an RLE file!\n");
+  if (strcmp(magic_number, "!RLE\0") == 0)
+    /* Return non-zero value if true */
+    return 1;
+  else
+    /* Return zero if false */
+    return 0;
 }
 
 
@@ -206,7 +210,8 @@ void compress(const char *filename)
   
   /* init for cur_byte */
   cur_byte = fgetc(fp_in);
-  
+
+
   /* Load file bytes to memory */
   while (cur_byte != EOF)
   {
@@ -326,17 +331,16 @@ void expand(const char *filename)
 
 
   /* Throw error if file isn't .rle or contains !RLE in it*/
-  if (check_ext(filename)) {
+  /* check_ext true if == 1 */
+  if (check_ext(filename) == 1) {
     fp = fopen(filename, "rb"); /* Open file */
-
-    for (int i = 0; i < 4; i++)
-      magic_number[i] = fgetc(fp);
     
-    /* Compare strings */
-    if (strcmp(magic_number, "!RLE\0") == 1)
+    /* check_magic true if == 1*/
+    if (check_magic(fp) == 0)
       fprintf(stderr, "error -- file is not an RLE file!\n");
   }
-  else fprintf(stderr, "error -- file is not an RLE file!\n");
+  else
+    fprintf(stderr, "error -- file is not an RLE file!\n");
 
   /* Create output file */
   FILE *fp_out;
@@ -353,28 +357,15 @@ void expand(const char *filename)
   /* init for prev byte */
   prev_byte = EOF;
 
+  /* Move past !RLE */
+  for (int i = 0; i < 3; i++) cur_byte = fgetc(fp);
+  printf("Cur Byte: %02x\n", cur_byte);
+
   /* Iterate through file */
   while((cur_byte = fgetc(fp)) != EOF)
   {
-    /* If theres a match */
-    if (cur_byte == prev_byte) {
-      count = fgetc(fp);
 
-      while (count > 0) {
-        fputc(cur_byte, fp_out);
-        count--;
-      }
-
-      prev_byte = EOF;   /* prev_byte to null again */
-    } /* end: if (cur_byte == prev_byte) */
-    else
-    {
-      /* No match */
-      prev_byte = cur_byte;
-    }
-
-    /* Add character to file */
-    fputc(cur_byte, fp_out);
+    break;
 
   } /* End of: while(cur_byte != EOF) */
 
